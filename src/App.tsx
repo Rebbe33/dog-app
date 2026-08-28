@@ -4,6 +4,7 @@ import ModeRapide from './pages/ModeRapide'
 import Tours from './pages/Tours'
 import Autocontrole from './pages/Autocontrole'
 import Anxiete from './pages/Anxiete'
+import AnxieteDeclencheur from './pages/AnxieteDeclencheur'
 import EducationBase from './pages/EducationBase'
 import Activites from './pages/Activites'
 import Sante from './pages/Sante'
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/tours" element={<Tours />} />
           <Route path="/autocontrole" element={<Autocontrole />} />
           <Route path="/anxiete" element={<Anxiete />} />
+          <Route path="/anxiete/:id" element={<AnxieteDeclencheur />} />
           <Route path="/education" element={<EducationBase />} />
           <Route path="/activites" element={<Activites />} />
           <Route path="/sante" element={<Sante />} />
