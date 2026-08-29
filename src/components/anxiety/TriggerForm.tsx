@@ -43,26 +43,26 @@ export default function TriggerForm({ onCreated, onCancel }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 bg-white border border-gray-200 rounded-lg p-4">
-      <h3 className="font-medium">Nouveau déclencheur</h3>
+    <form onSubmit={handleSubmit} className="card space-y-3">
+      <h3 className="font-display text-lg font-medium text-ink">Nouveau déclencheur</h3>
 
-      <label className="block text-sm">
+      <label className="block text-sm text-ink">
         Nom
         <input
           type="text"
           value={nom}
           onChange={(e) => setNom(e.target.value)}
           placeholder="ex. orage, feu d'artifice..."
-          className="mt-1 w-full border border-gray-300 rounded px-2 py-1.5"
+          className="mt-1 w-full border border-line rounded-xl px-3 py-2 bg-white"
         />
       </label>
 
-      <label className="block text-sm">
+      <label className="block text-sm text-ink">
         Catégorie
         <select
           value={categorie}
           onChange={(e) => setCategorie(e.target.value)}
-          className="mt-1 w-full border border-gray-300 rounded px-2 py-1.5"
+          className="mt-1 w-full border border-line rounded-xl px-3 py-2 bg-white"
         >
           {CATEGORIES.map((c) => (
             <option key={c.value} value={c.value}>
@@ -72,7 +72,7 @@ export default function TriggerForm({ onCreated, onCancel }: Props) {
         </select>
       </label>
 
-      <label className="block text-sm">
+      <label className="block text-sm text-ink">
         Intensité par défaut (1-5)
         <input
           type="number"
@@ -80,33 +80,34 @@ export default function TriggerForm({ onCreated, onCancel }: Props) {
           max={5}
           value={intensiteDefaut}
           onChange={(e) => setIntensiteDefaut(Number(e.target.value))}
-          className="mt-1 w-full border border-gray-300 rounded px-2 py-1.5"
+          className="mt-1 w-full border border-line rounded-xl px-3 py-2 bg-white"
         />
       </label>
 
-      <label className="flex items-center gap-2 text-sm">
+      <label className="flex items-center gap-2 text-sm text-ink">
         <input
           type="checkbox"
           checked={protocoleActive}
           onChange={(e) => setProtocoleActive(e.target.checked)}
+          className="accent-moss"
         />
         Activer un protocole de désensibilisation par paliers
       </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-rust">{error}</p>}
 
       <div className="flex gap-2 pt-1">
         <button
           type="submit"
           disabled={saving}
-          className="flex-1 bg-gray-900 text-white rounded py-2 text-sm disabled:opacity-50"
+          className="btn-primary flex-1 py-2 text-sm"
         >
           {saving ? 'Création...' : 'Créer'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded"
+          className="btn-secondary px-4 py-2 text-sm"
         >
           Annuler
         </button>
