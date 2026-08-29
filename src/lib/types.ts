@@ -40,6 +40,27 @@ export type AnxietyTechnique = {
   notes: string | null
 }
 
+export type TrickCategorie = 'tour' | 'autocontrole' | 'education_base' | 'activite'
+
+export type Trick = {
+  id: string
+  nom: string
+  categorie: TrickCategorie
+  prioritaire: boolean
+  tags: string[]
+  created_at: string
+}
+
+export type TrickStep = {
+  id: string
+  trick_id: string
+  ordre: number
+  description: string
+  completed: boolean
+  date_completion: string | null
+  notes: string | null
+}
+
 export const REACTION_TAGS = [
   'hurle',
   'tremble',
