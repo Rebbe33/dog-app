@@ -3,6 +3,7 @@ import { Home, Zap, Sparkles, ShieldCheck, HeartPulse, Users, MountainSnow, Stet
 import Accueil from './pages/Accueil'
 import ModeRapide from './pages/ModeRapide'
 import Tours from './pages/Tours'
+import TourDetail from './pages/TourDetail'
 import Autocontrole from './pages/Autocontrole'
 import Anxiete from './pages/Anxiete'
 import AnxieteDeclencheur from './pages/AnxieteDeclencheur'
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/" element={<Accueil />} />
           <Route path="/rapide" element={<ModeRapide />} />
           <Route path="/tours" element={<Tours />} />
+          <Route path="/tours/:id" element={<TourDetail />} />
           <Route path="/autocontrole" element={<Autocontrole />} />
           <Route path="/anxiete" element={<Anxiete />} />
           <Route path="/anxiete/:id" element={<AnxieteDeclencheur />} />
