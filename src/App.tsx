@@ -1,4 +1,5 @@
 import { Routes, Route, NavLink } from 'react-router-dom'
+import { Home, Zap, Sparkles, ShieldCheck, HeartPulse, Users, MountainSnow, Stethoscope, Settings } from 'lucide-react'
 import Accueil from './pages/Accueil'
 import ModeRapide from './pages/ModeRapide'
 import Tours from './pages/Tours'
@@ -11,25 +12,25 @@ import Sante from './pages/Sante'
 import Reglages from './pages/Reglages'
 
 const NAV_ITEMS = [
-  { to: '/', label: 'Accueil' },
-  { to: '/rapide', label: 'Rapide' },
-  { to: '/tours', label: 'Tours' },
-  { to: '/autocontrole', label: 'Autocontrôle' },
-  { to: '/anxiete', label: 'Anxiété' },
-  { to: '/education', label: 'Éducation' },
-  { to: '/activites', label: 'Activités' },
-  { to: '/sante', label: 'Santé' },
-  { to: '/reglages', label: 'Réglages' },
+  { to: '/', label: 'Accueil', icon: Home },
+  { to: '/rapide', label: 'Rapide', icon: Zap },
+  { to: '/tours', label: 'Tours', icon: Sparkles },
+  { to: '/autocontrole', label: 'Autocontrôle', icon: ShieldCheck },
+  { to: '/anxiete', label: 'Anxiété', icon: HeartPulse },
+  { to: '/education', label: 'Éducation', icon: Users },
+  { to: '/activites', label: 'Activités', icon: MountainSnow },
+  { to: '/sante', label: 'Santé', icon: Stethoscope },
+  { to: '/reglages', label: 'Réglages', icon: Settings },
 ]
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="px-4 py-3 border-b border-gray-200 bg-white">
-        <h1 className="text-lg font-semibold">Vanya</h1>
+    <div className="min-h-screen flex flex-col bg-paper">
+      <header className="px-5 py-4">
+        <h1 className="font-display text-2xl font-semibold text-ink">Vanya</h1>
       </header>
 
-      <main className="flex-1 px-4 py-4 pb-20">
+      <main className="flex-1 px-4 pb-24">
         <Routes>
           <Route path="/" element={<Accueil />} />
           <Route path="/rapide" element={<ModeRapide />} />
@@ -44,23 +45,27 @@ export default function App() {
         </Routes>
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 overflow-x-auto">
-        <ul className="flex text-xs">
-          {NAV_ITEMS.map((item) => (
-            <li key={item.to} className="flex-1 min-w-[72px]">
-              <NavLink
-                to={item.to}
-                end={item.to === '/'}
-                className={({ isActive }) =>
-                  `flex flex-col items-center justify-center py-2 ${
-                    isActive ? 'text-gray-900 font-medium' : 'text-gray-500'
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
-            </li>
-          ))}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-line overflow-x-auto">
+        <ul className="flex text-[11px]">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon
+            return (
+              <li key={item.to} className="flex-1 min-w-[68px]">
+                <NavLink
+                  to={item.to}
+                  end={item.to === '/'}
+                  className={({ isActive }) =>
+                    `flex flex-col items-center justify-center gap-0.5 py-2.5 ${
+                      isActive ? 'text-moss-dark font-medium' : 'text-ink/40'
+                    }`
+                  }
+                >
+                  <Icon size={20} strokeWidth={2} />
+                  {item.label}
+                </NavLink>
+              </li>
+            )
+          })}
         </ul>
       </nav>
     </div>
