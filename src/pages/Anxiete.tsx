@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts'
+import { Plus } from 'lucide-react'
 import { supabase, TABLES } from '../lib/supabase'
 import type { AnxietyTrigger, AnxietyLogEntry } from '../lib/types'
 import LogEpisodeForm from '../components/anxiety/LogEpisodeForm'
 import TriggerForm from '../components/anxiety/TriggerForm'
+import PawTrail from '../components/PawTrail'
 
 function daysSince(dateStr: string | null): number | null {
   if (!dateStr) return null
@@ -51,18 +53,18 @@ export default function Anxiete() {
     }))
 
   if (loading) {
-    return <p className="text-sm text-gray-500">Chargement...</p>
+    return <p className="text-sm text-ink/50">Chargement...</p>
   }
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Anxiété</h2>
+        <h2 className="font-display text-xl font-semibold text-ink">Anxiété</h2>
         <button
           onClick={() => setShowLogForm((v) => !v)}
-          className="text-sm bg-gray-900 text-white rounded px-3 py-1.5"
+          className="btn-primary text-sm px-4 py-2 flex items-center gap-1"
         >
-          + Épisode
+          <Plus size={16} /> Épisode
         </button>
       </div>
 
@@ -77,24 +79,27 @@ export default function Anxiete() {
         />
       )}
 
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <p className="text-sm text-gray-500">Jours sans crise</p>
-        <p className="text-3xl font-semibold">
+      <div className="card">
+        <p className="text-sm text-ink/50 mb-2">Jours sans crise</p>
+        <p className="font-display text-4xl font-semibold text-moss-dark">
           {joursSansCrise === null ? '—' : joursSansCrise}
         </p>
+        <div className="mt-3">
+          <PawTrail total={7} filled={joursSansCrise === null ? 0 : Math.min(joursSansCrise, 7)} />
+        </div>
       </div>
 
       {chartData.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-sm text-gray-500 mb-2">Intensité des derniers épisodes</p>
+        <div className="card">
+          <p className="text-sm text-ink/50 mb-2">Intensité des derniers épisodes</p>
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                <XAxis dataKey="date" fontSize={11} />
-                <YAxis domain={[0, 5]} fontSize={11} width={20} />
-                <Tooltip />
-                <Line type="monotone" dataKey="intensite" stroke="#1f2937" strokeWidth={2} dot={{ r: 3 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#DAD3C5" />
+                <XAxis dataKey="date" fontSize={11} stroke="#2B2A28" />
+                <YAxis domain={[0, 5]} fontSize={11} width={20} stroke="#2B2A28" />
+                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #DAD3C5', fontFamily: 'Inter' }} />
+                <Line type="monotone" dataKey="intensite" stroke="#B5502B" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -102,11 +107,11 @@ export default function Anxiete() {
       )}
 
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-medium">Déclencheurs</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-display text-lg font-medium text-ink">Déclencheurs</h3>
           <button
             onClick={() => setShowTriggerForm((v) => !v)}
-            className="text-sm text-gray-600 underline"
+            className="text-sm text-moss-dark font-medium"
           >
             + Ajouter
           </button>
@@ -125,24 +130,19 @@ export default function Anxiete() {
         )}
 
         {triggers.length === 0 && (
-          <p className="text-sm text-gray-500">Aucun déclencheur enregistré pour l'instant.</p>
+          <p className="text-sm text-ink/50">Aucun déclencheur enregistré pour l'instant.</p>
         )}
 
         <ul className="space-y-2">
           {triggers.map((t) => (
             <li key={t.id}>
-              <Link
-                to={`/anxiete/${t.id}`}
-                className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3"
-              >
+              <Link to={`/anxiete/${t.id}`} className="card flex items-center justify-between !py-3">
                 <div>
-                  <p className="font-medium text-sm">{t.nom}</p>
-                  <p className="text-xs text-gray-500">{t.categorie}</p>
+                  <p className="font-medium text-sm text-ink">{t.nom}</p>
+                  <p className="text-xs text-ink/40 capitalize">{t.categorie}</p>
                 </div>
                 {t.protocole_active && (
-                  <span className="text-xs bg-gray-100 text-gray-700 rounded-full px-2 py-1">
-                    protocole actif
-                  </span>
+                  <span className="tag tag-active">protocole actif</span>
                 )}
               </Link>
             </li>
