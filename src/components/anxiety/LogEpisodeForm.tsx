@@ -58,15 +58,15 @@ export default function LogEpisodeForm({ triggers, defaultTriggerId, onLogged, o
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 bg-white border border-gray-200 rounded-lg p-4">
-      <h3 className="font-medium">Nouvel épisode</h3>
+    <form onSubmit={handleSubmit} className="card space-y-3">
+      <h3 className="font-display text-lg font-medium text-ink">Nouvel épisode</h3>
 
-      <label className="block text-sm">
+      <label className="block text-sm text-ink">
         Déclencheur
         <select
           value={triggerId}
           onChange={(e) => handleTriggerChange(e.target.value)}
-          className="mt-1 w-full border border-gray-300 rounded px-2 py-1.5"
+          className="mt-1 w-full border border-line rounded-xl px-3 py-2 bg-white"
         >
           {triggers.map((t) => (
             <option key={t.id} value={t.id}>
@@ -77,7 +77,7 @@ export default function LogEpisodeForm({ triggers, defaultTriggerId, onLogged, o
       </label>
 
       <div className="flex gap-3">
-        <label className="block text-sm flex-1">
+        <label className="block text-sm flex-1 text-ink">
           Intensité (1-5)
           <input
             type="number"
@@ -85,34 +85,30 @@ export default function LogEpisodeForm({ triggers, defaultTriggerId, onLogged, o
             max={5}
             value={intensite}
             onChange={(e) => setIntensite(Number(e.target.value))}
-            className="mt-1 w-full border border-gray-300 rounded px-2 py-1.5"
+            className="mt-1 w-full border border-line rounded-xl px-3 py-2 bg-white"
           />
         </label>
-        <label className="block text-sm flex-1">
+        <label className="block text-sm flex-1 text-ink">
           Durée (minutes)
           <input
             type="number"
             min={0}
             value={dureeMinutes}
             onChange={(e) => setDureeMinutes(Number(e.target.value))}
-            className="mt-1 w-full border border-gray-300 rounded px-2 py-1.5"
+            className="mt-1 w-full border border-line rounded-xl px-3 py-2 bg-white"
           />
         </label>
       </div>
 
       <div>
-        <span className="block text-sm mb-1">Réactions observées</span>
+        <span className="block text-sm text-ink mb-1">Réactions observées</span>
         <div className="flex flex-wrap gap-2">
           {REACTION_TAGS.map((tag) => (
             <button
               type="button"
               key={tag}
               onClick={() => toggleReaction(tag)}
-              className={`text-xs px-2 py-1 rounded-full border ${
-                reactions.includes(tag)
-                  ? 'bg-gray-900 text-white border-gray-900'
-                  : 'bg-white text-gray-600 border-gray-300'
-              }`}
+              className={`tag ${reactions.includes(tag) ? 'tag-active' : 'text-ink/60'}`}
             >
               {tag}
             </button>
@@ -120,51 +116,51 @@ export default function LogEpisodeForm({ triggers, defaultTriggerId, onLogged, o
         </div>
       </div>
 
-      <label className="block text-sm">
+      <label className="block text-sm text-ink">
         Contexte
         <input
           type="text"
           value={contexte}
           onChange={(e) => setContexte(e.target.value)}
           placeholder="ex. seule à la maison, en promenade..."
-          className="mt-1 w-full border border-gray-300 rounded px-2 py-1.5"
+          className="mt-1 w-full border border-line rounded-xl px-3 py-2 bg-white"
         />
       </label>
 
-      <label className="block text-sm">
+      <label className="block text-sm text-ink">
         Technique utilisée
         <input
           type="text"
           value={techniqueUtilisee}
           onChange={(e) => setTechniqueUtilisee(e.target.value)}
-          className="mt-1 w-full border border-gray-300 rounded px-2 py-1.5"
+          className="mt-1 w-full border border-line rounded-xl px-3 py-2 bg-white"
         />
       </label>
 
-      <label className="block text-sm">
+      <label className="block text-sm text-ink">
         Notes
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
-          className="mt-1 w-full border border-gray-300 rounded px-2 py-1.5"
+          className="mt-1 w-full border border-line rounded-xl px-3 py-2 bg-white"
         />
       </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-rust">{error}</p>}
 
       <div className="flex gap-2 pt-1">
         <button
           type="submit"
           disabled={saving || !triggerId}
-          className="flex-1 bg-gray-900 text-white rounded py-2 text-sm disabled:opacity-50"
+          className="btn-primary flex-1 py-2 text-sm"
         >
           {saving ? 'Enregistrement...' : 'Enregistrer'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded"
+          className="btn-secondary px-4 py-2 text-sm"
         >
           Annuler
         </button>
