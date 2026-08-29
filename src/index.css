@@ -7,6 +7,62 @@ html, body, #root {
 }
 
 body {
-  background-color: #f7f5f2;
-  color: #1f2937;
+  background-color: #EFEAE1;
+  color: #2B2A28;
+  font-family: 'Inter', sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  box-shadow: 0 1px 2px rgba(43, 42, 40, 0.04), 0 4px 16px rgba(43, 42, 40, 0.06);
+  padding: 1.1rem;
+}
+
+.btn-primary {
+  background-color: #4A6B4E;
+  color: #FFFFFF;
+  border-radius: 999px;
+  font-weight: 500;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.btn-primary:hover { background-color: #38512C; }
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary:disabled { opacity: 0.5; }
+
+.btn-secondary {
+  background-color: transparent;
+  color: #2B2A28;
+  border: 1px solid #DAD3C5;
+  border-radius: 999px;
+}
+
+.tag {
+  border-radius: 999px;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid #DAD3C5;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.tag-active {
+  background-color: #2B2A28;
+  color: #FFFFFF;
+  border-color: #2B2A28;
+}
+
+.pawstep {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.pawstep-done {
+  opacity: 1;
+}
+.pawstep-todo {
+  opacity: 0.35;
 }
