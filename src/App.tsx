@@ -11,6 +11,7 @@ import AnxieteDeclencheur from './pages/AnxieteDeclencheur'
 import EducationBase from './pages/EducationBase'
 import EducationBaseDetail from './pages/EducationBaseDetail'
 import Activites from './pages/Activites'
+import ActiviteDetail from './pages/ActiviteDetail'
 import Sante from './pages/Sante'
 import Reglages from './pages/Reglages'
 
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="/education" element={<EducationBase />} />
           <Route path="/education/:id" element={<EducationBaseDetail />} />
           <Route path="/activites" element={<Activites />} />
+          <Route path="/activites/:id" element={<ActiviteDetail />} />
           <Route path="/sante" element={<Sante />} />
           <Route path="/reglages" element={<Reglages />} />
         </Routes>
