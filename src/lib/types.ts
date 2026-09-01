@@ -61,6 +61,15 @@ export type TrickStep = {
   notes: string | null
 }
 
+export type EducationLogEntry = {
+  id: string
+  date: string
+  contexte: 'humains' | 'autres_chiens' | 'promenade' | 'maison' | 'autre' | null
+  observation: string
+  resultat: string | null
+  notes: string | null
+}
+
 export const REACTION_TAGS = [
   'hurle',
   'tremble',
