@@ -70,6 +70,30 @@ export type EducationLogEntry = {
   notes: string | null
 }
 
+export type DogActivity = {
+  id: string
+  nom: string
+  materiel_requis: string[]
+  niveau_actuel: string | null
+  temperature_max_recommandee: number | null
+  objectif_progressif_active: boolean
+  trick_id: string | null
+  created_at: string
+}
+
+export type ActivitySession = {
+  id: string
+  activity_id: string
+  date: string
+  duree: string | null
+  distance: number | null
+  meteo_temperature: number | null
+  meteo_condition: string | null
+  etat_avant: string[]
+  etat_apres: string[]
+  notes: string | null
+}
+
 export const REACTION_TAGS = [
   'hurle',
   'tremble',
