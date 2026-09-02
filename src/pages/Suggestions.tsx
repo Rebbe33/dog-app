@@ -101,9 +101,18 @@ export default function Suggestions() {
     const filtered = tricksAvecProchaineEtape.filter(
       (t) => !t.prochaine || !isOutdoorStep(t.prochaine.description),
     )
-    const prioritaires = shuffle(filtered.filter((t) => t.prioritaire))
-    const autres = shuffle(filtered.filter((t) => !t.prioritaire))
-    return [...prioritaires, ...autres].slice(0, 5)
+    const enCours = filtered.filter((t) => t.steps.length > 0)
+    const nouveaux = filtered.filter((t) => t.steps.length === 0)
+
+    const enCoursPrioritaires = shuffle(enCours.filter((t) => t.prioritaire))
+    const enCoursAutres = shuffle(enCours.filter((t) => !t.prioritaire))
+    const aContinuer = [...enCoursPrioritaires, ...enCoursAutres].slice(0, 4)
+
+    const nouveauxPrioritaires = shuffle(nouveaux.filter((t) => t.prioritaire))
+    const nouveauxAutres = shuffle(nouveaux.filter((t) => !t.prioritaire))
+    const nouveau = [...nouveauxPrioritaires, ...nouveauxAutres].slice(0, 1)
+
+    return { aContinuer, nouveau }
   }, [tricksAvecProchaineEtape])
 
   const suggestionsExterieurTours = useMemo(() => {
@@ -158,28 +167,49 @@ export default function Suggestions() {
       </div>
 
       {contexte === 'maison' && (
-        <div>
-          <p className="text-sm text-ink/60 mb-3">
+        <div className="space-y-6">
+          <p className="text-sm text-ink/60">
             Ces exercices se font sans matériel particulier (juste des friandises) — parfaits là où tu es.
           </p>
-          {suggestionsMaison.length === 0 && (
-            <p className="text-sm text-ink/50">Tout est déjà maîtrisé, bravo !</p>
+
+          <div>
+            <h3 className="font-display text-lg font-medium text-ink mb-2">À continuer</h3>
+            {suggestionsMaison.aContinuer.length === 0 && (
+              <p className="text-sm text-ink/50">Rien en cours pour l'instant.</p>
+            )}
+            <ul className="space-y-2">
+              {suggestionsMaison.aContinuer.map((t) => (
+                <li key={t.id}>
+                  <Link to={`${categorieRoute[t.categorie]}/${t.id}`} className="card !py-3 block">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-ink">{t.nom}</p>
+                      <span className="text-xs text-ink/40">{categorieLabel[t.categorie]}</span>
+                    </div>
+                    <p className="text-xs text-ink/50 mt-1">{t.prochaine?.description}</p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {suggestionsMaison.nouveau.length > 0 && (
+            <div>
+              <h3 className="font-display text-lg font-medium text-ink mb-2">Nouveau tour à découvrir</h3>
+              <ul className="space-y-2">
+                {suggestionsMaison.nouveau.map((t) => (
+                  <li key={t.id}>
+                    <Link to={`${categorieRoute[t.categorie]}/${t.id}`} className="card !py-3 block">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-ink">{t.nom}</p>
+                        <span className="text-xs text-ink/40">{categorieLabel[t.categorie]}</span>
+                      </div>
+                      <p className="text-xs text-ink/50 mt-1">Pas encore d'étapes — à démarrer</p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
-          <ul className="space-y-2">
-            {suggestionsMaison.map((t) => (
-              <li key={t.id}>
-                <Link to={`${categorieRoute[t.categorie]}/${t.id}`} className="card !py-3 block">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-ink">{t.nom}</p>
-                    <span className="text-xs text-ink/40">{categorieLabel[t.categorie]}</span>
-                  </div>
-                  <p className="text-xs text-ink/50 mt-1">
-                    {t.prochaine ? t.prochaine.description : 'Pas encore d\'étapes — à démarrer'}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
         </div>
       )}
 
