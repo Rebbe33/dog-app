@@ -101,8 +101,10 @@ export default function Suggestions() {
     const filtered = tricksAvecProchaineEtape.filter(
       (t) => !t.prochaine || !isOutdoorStep(t.prochaine.description),
     )
-    const enCours = filtered.filter((t) => t.steps.length > 0)
-    const nouveaux = filtered.filter((t) => t.steps.length === 0)
+    // "En cours" = au moins une étape déjà validée. "Nouveau" = aucune étape validée,
+    // qu'il y ait ou non des étapes définies (elles peuvent exister sans avoir été pratiquées).
+    const enCours = filtered.filter((t) => t.steps.some((s) => s.completed))
+    const nouveaux = filtered.filter((t) => !t.steps.some((s) => s.completed))
 
     const enCoursPrioritaires = shuffle(enCours.filter((t) => t.prioritaire))
     const enCoursAutres = shuffle(enCours.filter((t) => !t.prioritaire))
@@ -203,7 +205,9 @@ export default function Suggestions() {
                         <p className="text-sm font-medium text-ink">{t.nom}</p>
                         <span className="text-xs text-ink/40">{categorieLabel[t.categorie]}</span>
                       </div>
-                      <p className="text-xs text-ink/50 mt-1">Pas encore d'étapes — à démarrer</p>
+                      <p className="text-xs text-ink/50 mt-1">
+                        {t.prochaine ? t.prochaine.description : "Pas encore d'étapes — à démarrer"}
+                      </p>
                     </Link>
                   </li>
                 ))}
