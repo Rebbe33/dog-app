@@ -94,6 +94,44 @@ export type ActivitySession = {
   notes: string | null
 }
 
+export const HEALTH_EVENT_TYPES = [
+  { value: 'vaccin', label: 'Vaccin' },
+  { value: 'vermifuge', label: 'Vermifuge' },
+  { value: 'antiparasitaire', label: 'Antiparasitaire' },
+  { value: 'visite_veterinaire', label: 'Visite vétérinaire' },
+  { value: 'toilettage_bain', label: 'Bain' },
+  { value: 'toilettage_griffes', label: 'Griffes' },
+  { value: 'toilettage_brossage', label: 'Brossage' },
+  { value: 'autre', label: 'Autre' },
+] as const
+
+export type HealthEventType = typeof HEALTH_EVENT_TYPES[number]['value']
+
+export type HealthEvent = {
+  id: string
+  type: HealthEventType
+  date: string
+  notes: string | null
+  piece_jointe_url: string | null
+  created_at: string
+}
+
+export type HealthReminder = {
+  id: string
+  type: string
+  frequence_jours: number | null
+  date_prochain_rappel: string | null
+  actif: boolean
+  created_at: string
+}
+
+export type WeightEntry = {
+  id: string
+  date: string
+  poids_kg: number
+  notes: string | null
+}
+
 export const REACTION_TAGS = [
   'hurle',
   'tremble',
