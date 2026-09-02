@@ -6,6 +6,25 @@ import type { DogActivity, Trick, TrickStep } from '../lib/types'
 
 const MATERIEL_STORAGE_KEY = 'vanya-materiel-disponible'
 
+const OUTDOOR_KEYWORDS = [
+  'extérieur', 'exterieur', 'dehors', 'promenade', 'jardin', 'rue', 'parc',
+  'trottoir', 'quartier', 'forêt', 'foret', 'plage', 'rivière', 'riviere',
+]
+
+function isOutdoorStep(description: string) {
+  const lower = description.toLowerCase()
+  return OUTDOOR_KEYWORDS.some((k) => lower.includes(k))
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  const copy = [...arr]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
+
 export default function Suggestions() {
   const [contexte, setContexte] = useState<'maison' | 'exterieur'>('maison')
   const [activities, setActivities] = useState<DogActivity[]>([])
@@ -66,15 +85,35 @@ export default function Suggestions() {
     [activities, materielDispo],
   )
 
-  // Suggestions "maison" : compétences non terminées, ou sans étapes du tout à démarrer,
-  // priorité aux tours marqués prioritaires
+  // Prochaine étape non validée de chaque compétence (ou null si terminée)
+  const tricksAvecProchaineEtape = useMemo(
+    () =>
+      tricks
+        .map((t) => {
+          const prochaine = [...t.steps].sort((a, b) => a.ordre - b.ordre).find((s) => !s.completed)
+          return { ...t, prochaine }
+        })
+        .filter((t) => t.steps.length === 0 || t.prochaine),
+    [tricks],
+  )
+
   const suggestionsMaison = useMemo(() => {
-    const nonTerminees = tricks.filter((t) => {
-      if (t.steps.length === 0) return true
-      return t.steps.some((s) => !s.completed)
-    })
-    return nonTerminees.sort((a, b) => Number(b.prioritaire) - Number(a.prioritaire)).slice(0, 5)
-  }, [tricks])
+    const filtered = tricksAvecProchaineEtape.filter(
+      (t) => !t.prochaine || !isOutdoorStep(t.prochaine.description),
+    )
+    const prioritaires = shuffle(filtered.filter((t) => t.prioritaire))
+    const autres = shuffle(filtered.filter((t) => !t.prioritaire))
+    return [...prioritaires, ...autres].slice(0, 5)
+  }, [tricksAvecProchaineEtape])
+
+  const suggestionsExterieurTours = useMemo(() => {
+    const filtered = tricksAvecProchaineEtape.filter(
+      (t) => t.prochaine && isOutdoorStep(t.prochaine.description),
+    )
+    const prioritaires = shuffle(filtered.filter((t) => t.prioritaire))
+    const autres = shuffle(filtered.filter((t) => !t.prioritaire))
+    return [...prioritaires, ...autres].slice(0, 5)
+  }, [tricksAvecProchaineEtape])
 
   const categorieLabel: Record<string, string> = {
     tour: 'Tour',
@@ -129,14 +168,14 @@ export default function Suggestions() {
           <ul className="space-y-2">
             {suggestionsMaison.map((t) => (
               <li key={t.id}>
-                <Link to={`${categorieRoute[t.categorie]}/${t.id}`} className="card !py-3 flex items-center justify-between">
-                  <div>
+                <Link to={`${categorieRoute[t.categorie]}/${t.id}`} className="card !py-3 block">
+                  <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-ink">{t.nom}</p>
-                    <p className="text-xs text-ink/40">{categorieLabel[t.categorie]}</p>
+                    <span className="text-xs text-ink/40">{categorieLabel[t.categorie]}</span>
                   </div>
-                  <span className="text-xs text-ink/40 font-mono">
-                    {t.steps.length === 0 ? 'à démarrer' : `${t.steps.filter((s) => s.completed).length}/${t.steps.length}`}
-                  </span>
+                  <p className="text-xs text-ink/50 mt-1">
+                    {t.prochaine ? t.prochaine.description : 'Pas encore d\'étapes — à démarrer'}
+                  </p>
                 </Link>
               </li>
             ))}
@@ -145,43 +184,67 @@ export default function Suggestions() {
       )}
 
       {contexte === 'exterieur' && (
-        <div>
-          <p className="text-sm text-ink/60 mb-2">Coche ce que tu as sur toi :</p>
-          {allMateriel.length === 0 && (
-            <p className="text-sm text-ink/50 mb-3">
-              Aucun matériel renseigné pour l'instant sur tes activités — ajoutes-en depuis la fiche de chaque activité.
-            </p>
-          )}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {allMateriel.map((m) => (
-              <button
-                key={m}
-                onClick={() => toggleMateriel(m)}
-                className={`tag ${materielDispo.includes(m) ? 'tag-active' : 'text-ink/60'}`}
-              >
-                {m}
-              </button>
-            ))}
+        <div className="space-y-6">
+          <div>
+            <p className="text-sm text-ink/60 mb-2">Coche ce que tu as sur toi :</p>
+            {allMateriel.length === 0 && (
+              <p className="text-sm text-ink/50 mb-3">
+                Aucun matériel renseigné pour l'instant sur tes activités — ajoutes-en depuis la fiche de chaque activité.
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {allMateriel.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => toggleMateriel(m)}
+                  className={`tag ${materielDispo.includes(m) ? 'tag-active' : 'text-ink/60'}`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+
+            <p className="text-sm text-ink/60 mb-2">Activités réalisables maintenant :</p>
+            {activitesRealisables.length === 0 && (
+              <p className="text-sm text-ink/50">Aucune activité ne correspond au matériel sélectionné.</p>
+            )}
+            <ul className="space-y-2">
+              {activitesRealisables.map((a) => (
+                <li key={a.id}>
+                  <Link to={`/activites/${a.id}`} className="card !py-3 flex items-center justify-between">
+                    <p className="text-sm font-medium text-ink">{a.nom}</p>
+                    {a.materiel_requis?.length > 0 ? (
+                      <span className="text-xs text-ink/40">{a.materiel_requis.join(', ')}</span>
+                    ) : (
+                      <span className="text-xs text-ink/40">sans matériel</span>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <p className="text-sm text-ink/60 mb-2">Réalisable maintenant :</p>
-          {activitesRealisables.length === 0 && (
-            <p className="text-sm text-ink/50">Aucune activité ne correspond au matériel sélectionné.</p>
-          )}
-          <ul className="space-y-2">
-            {activitesRealisables.map((a) => (
-              <li key={a.id}>
-                <Link to={`/activites/${a.id}`} className="card !py-3 flex items-center justify-between">
-                  <p className="text-sm font-medium text-ink">{a.nom}</p>
-                  {a.materiel_requis?.length > 0 ? (
-                    <span className="text-xs text-ink/40">{a.materiel_requis.join(', ')}</span>
-                  ) : (
-                    <span className="text-xs text-ink/40">sans matériel</span>
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div>
+            <p className="text-sm text-ink/60 mb-2">
+              Étapes de tours/autocontrôle à travailler dehors, pendant que tu y es :
+            </p>
+            {suggestionsExterieurTours.length === 0 && (
+              <p className="text-sm text-ink/50">Aucune étape en attente ne nécessite l'extérieur pour l'instant.</p>
+            )}
+            <ul className="space-y-2">
+              {suggestionsExterieurTours.map((t) => (
+                <li key={t.id}>
+                  <Link to={`${categorieRoute[t.categorie]}/${t.id}`} className="card !py-3 block">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-ink">{t.nom}</p>
+                      <span className="text-xs text-ink/40">{categorieLabel[t.categorie]}</span>
+                    </div>
+                    <p className="text-xs text-ink/50 mt-1">{t.prochaine?.description}</p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       )}
     </div>
