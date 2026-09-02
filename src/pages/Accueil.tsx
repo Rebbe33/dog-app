@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bell, HeartPulse, MountainSnow, Zap } from 'lucide-react'
+import { Bell, HeartPulse, MountainSnow, Zap, Compass } from 'lucide-react'
 import { supabase, TABLES } from '../lib/supabase'
 import type { HealthReminder, AnxietyLogEntry, ActivitySession, DogActivity } from '../lib/types'
 
@@ -57,8 +57,15 @@ export default function Accueil() {
     <div className="space-y-6">
       <h2 className="font-display text-xl font-semibold text-ink">Bonjour !</h2>
 
-      <Link to="/rapide" className="btn-primary w-full flex items-center justify-center gap-2 py-3">
-        <Zap size={18} /> Mode rapide
+      <Link to="/suggestions" className="btn-primary w-full flex items-center justify-center gap-2 py-3">
+        <Compass size={18} /> Que faire maintenant ?
+      </Link>
+
+      <Link
+        to="/rapide"
+        className="btn-secondary w-full flex items-center justify-center gap-2 py-2.5 !bg-white"
+      >
+        <Zap size={16} /> Mode rapide
       </Link>
 
       <div className="grid grid-cols-2 gap-3">
