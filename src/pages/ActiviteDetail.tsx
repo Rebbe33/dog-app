@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, PawPrint, Thermometer } from 'lucide-react'
+import { ArrowLeft, Plus, Thermometer } from 'lucide-react'
 import { supabase, TABLES } from '../lib/supabase'
 import type { DogActivity, ActivitySession, TrickStep } from '../lib/types'
 import ActivitySessionForm from '../components/activities/ActivitySessionForm'
 import PawTrail from '../components/PawTrail'
+import StepPawIcon, { nextStepStatus } from '../components/StepPawIcon'
 
 export default function ActiviteDetail() {
   const { id } = useParams<{ id: string }>()
@@ -92,10 +93,13 @@ export default function ActiviteDetail() {
   }
 
   async function toggleStep(step: TrickStep) {
-    const completed = !step.completed
+    const next = nextStepStatus(step)
     await supabase
       .from(TABLES.trickSteps)
-      .update({ completed, date_completion: completed ? new Date().toISOString().slice(0, 10) : null })
+      .update({
+        ...next,
+        date_completion: next.completed ? new Date().toISOString().slice(0, 10) : null,
+      })
       .eq('id', step.id)
     loadData()
   }
@@ -213,17 +217,14 @@ export default function ActiviteDetail() {
           <ul className="space-y-2">
             {steps.map((s) => (
               <li key={s.id} className="card !py-3 flex items-start gap-3">
-                <button onClick={() => toggleStep(s)} className="mt-0.5 shrink-0">
-                  <PawPrint
-                    size={20}
-                    className={s.completed ? 'text-moss' : 'text-line'}
-                    fill={s.completed ? 'currentColor' : 'none'}
-                  />
-                </button>
+                <StepPawIcon step={s} onClick={() => toggleStep(s)} />
                 <div>
                   <p className={`text-sm ${s.completed ? 'text-ink/40 line-through' : 'text-ink'}`}>
                     {s.description}
                   </p>
+                  {s.en_cours && !s.completed && (
+                    <p className="text-xs text-amber font-medium mt-0.5">en cours</p>
+                  )}
                   {s.date_completion && (
                     <p className="text-xs text-ink/30 font-mono mt-0.5">validé le {s.date_completion}</p>
                   )}
