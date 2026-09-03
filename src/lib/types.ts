@@ -48,6 +48,7 @@ export type Trick = {
   categorie: TrickCategorie
   prioritaire: boolean
   tags: string[]
+  prerequis: string[]
   created_at: string
 }
 
@@ -57,6 +58,7 @@ export type TrickStep = {
   ordre: number
   description: string
   completed: boolean
+  en_cours: boolean
   date_completion: string | null
   notes: string | null
 }
