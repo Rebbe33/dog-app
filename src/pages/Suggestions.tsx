@@ -11,6 +11,14 @@ const OUTDOOR_KEYWORDS = [
   'trottoir', 'quartier', 'forêt', 'foret', 'plage', 'rivière', 'riviere',
 ]
 
+// Étapes de fin de progression = généralisation/consolidation plutôt qu'apprentissage du geste
+const CONSOLIDATION_KEYWORDS = ['généralise', 'généraliser', 'généralisation', 'consolidation']
+
+function isConsolidationStep(description: string) {
+  const lower = description.toLowerCase()
+  return CONSOLIDATION_KEYWORDS.some((k) => lower.includes(k))
+}
+
 // Matériel "personnel" fixe, en plus de celui déjà déclaré sur les activités
 const EQUIPEMENT_PERSO = ['Laisse', 'Longe', 'Jouet', 'Corde', 'Cible/bâton', 'Gamelle', 'Couverture', 'Harnais']
 
@@ -146,22 +154,23 @@ export default function Suggestions() {
     const toursPool = poolContexte.filter((t) => t.categorie === 'tour')
     const autocontrolePool = poolContexte.filter((t) => t.categorie === 'autocontrole')
 
-    const toursAppris = shuffle(
-      toursPool.filter((t) => t.steps.length > 0 && t.steps.every((s) => s.completed)),
-    ).slice(0, 4)
+    // "En révision" = totalement maîtrisé, OU il ne reste que des étapes de
+    // généralisation/consolidation (le geste de base est déjà acquis).
+    const enRevision = (t: TrickAvecEtapes) => {
+      const maitrise = t.steps.length > 0 && t.steps.every((s) => s.completed)
+      if (maitrise) return true
+      return !!t.prochaine && isConsolidationStep(t.prochaine.description) && t.steps.some((s) => s.completed || s.en_cours)
+    }
+    // "En apprentissage" = un peu de progression, mais encore sur une étape de base.
+    const enApprentissage = (t: TrickAvecEtapes) =>
+      !enRevision(t) && t.steps.some((s) => s.completed || s.en_cours)
 
-    const toursEnCoursCandidats = toursPool.filter(
-      (t) => t.steps.some((s) => s.en_cours) || (t.steps.some((s) => s.completed) && t.steps.some((s) => !s.completed)),
-    )
-    const tourEnCours = shuffle(toursEnCoursCandidats).slice(0, 1)
+    const toursAppris = shuffle(toursPool.filter(enRevision)).slice(0, 4)
+    const tourEnCours = shuffle(toursPool.filter(enApprentissage)).slice(0, 1)
 
-    const autocontroleEnCours = autocontrolePool.filter(
-      (t) => t.steps.some((s) => s.en_cours) || (t.steps.some((s) => s.completed) && t.steps.some((s) => !s.completed)),
-    )
-    const autocontroleMaitrise = autocontrolePool.filter(
-      (t) => t.steps.length > 0 && t.steps.every((s) => s.completed),
-    )
-    const autocontroleNouveau = autocontrolePool.filter((t) => t.steps.length === 0 || !t.steps.some((s) => s.completed || s.en_cours))
+    const autocontroleEnCours = autocontrolePool.filter(enApprentissage)
+    const autocontroleMaitrise = autocontrolePool.filter(enRevision)
+    const autocontroleNouveau = autocontrolePool.filter((t) => !t.steps.some((s) => s.completed || s.en_cours))
     const autocontroleChoisi = shuffle(
       autocontroleEnCours.length > 0 ? autocontroleEnCours : autocontroleMaitrise.length > 0 ? autocontroleMaitrise : autocontroleNouveau,
     ).slice(0, 1)
