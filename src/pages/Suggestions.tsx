@@ -97,14 +97,25 @@ export default function Suggestions() {
     [tricks],
   )
 
+  // Un tour est "maîtrisé" si toutes ses étapes sont validées (et qu'il en a).
+  const estMaitrise = (nom: string) => {
+    const t = tricks.find((tr) => tr.nom === nom)
+    if (!t) return false
+    return t.steps.length > 0 && t.steps.every((s) => s.completed)
+  }
+
   const suggestionsMaison = useMemo(() => {
     const filtered = tricksAvecProchaineEtape.filter(
       (t) => !t.prochaine || !isOutdoorStep(t.prochaine.description),
     )
-    // "En cours" = au moins une étape déjà validée. "Nouveau" = aucune étape validée,
-    // qu'il y ait ou non des étapes définies (elles peuvent exister sans avoir été pratiquées).
-    const enCours = filtered.filter((t) => t.steps.some((s) => s.completed))
-    const nouveaux = filtered.filter((t) => !t.steps.some((s) => s.completed))
+    // "En cours" = au moins une étape validée OU en cours de travail.
+    // "Nouveau" = rien d'entamé, et prérequis (s'il y en a) déjà maîtrisés.
+    const enCours = filtered.filter((t) => t.steps.some((s) => s.completed || s.en_cours))
+    const nouveaux = filtered.filter(
+      (t) =>
+        !t.steps.some((s) => s.completed || s.en_cours) &&
+        t.prerequis.every((p) => estMaitrise(p)),
+    )
 
     const enCoursPrioritaires = shuffle(enCours.filter((t) => t.prioritaire))
     const enCoursAutres = shuffle(enCours.filter((t) => !t.prioritaire))
@@ -115,7 +126,7 @@ export default function Suggestions() {
     const nouveau = [...nouveauxPrioritaires, ...nouveauxAutres].slice(0, 1)
 
     return { aContinuer, nouveau }
-  }, [tricksAvecProchaineEtape])
+  }, [tricksAvecProchaineEtape, tricks])
 
   const suggestionsExterieurTours = useMemo(() => {
     const filtered = tricksAvecProchaineEtape.filter(
