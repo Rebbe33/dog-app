@@ -42,6 +42,8 @@ export type AnxietyTechnique = {
 
 export type TrickCategorie = 'tour' | 'autocontrole' | 'education_base' | 'activite'
 
+export type TrickStatut = 'non_appris' | 'en_cours' | 'appris'
+
 export type Trick = {
   id: string
   nom: string
@@ -49,6 +51,7 @@ export type Trick = {
   prioritaire: boolean
   tags: string[]
   prerequis: string[]
+  statut: TrickStatut
   created_at: string
 }
 
