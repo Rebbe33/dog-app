@@ -5,6 +5,7 @@ import { supabase, TABLES } from '../lib/supabase'
 import type { Trick, TrickStep } from '../lib/types'
 import PawTrail from '../components/PawTrail'
 import StepPawIcon, { nextStepStatus } from '../components/StepPawIcon'
+import StatutSelector from '../components/StatutSelector'
 
 export default function AutocontroleDetail() {
   const { id } = useParams<{ id: string }>()
@@ -63,6 +64,12 @@ export default function AutocontroleDetail() {
       description: newStep.trim(),
     })
     setNewStep('')
+    loadData()
+  }
+
+  async function changeStatut(statut: Trick['statut']) {
+    if (!trick) return
+    await supabase.from(TABLES.tricks).update({ statut }).eq('id', trick.id)
     loadData()
   }
 
@@ -125,6 +132,8 @@ export default function AutocontroleDetail() {
         </p>
       )}
 
+      <StatutSelector statut={trick.statut} onChange={changeStatut} />
+
       <div className="card">
         <label className="block text-sm text-ink">
           Tags (séparés par une virgule)
@@ -180,6 +189,10 @@ export default function AutocontroleDetail() {
             Pas encore d'étapes — ajoute une progression personnalisée.
           </p>
         )}
+
+        <p className="text-xs text-ink/40 mb-2">
+          Tape sur la patte pour changer l'état : à faire → en cours → validé.
+        </p>
 
         <ul className="space-y-2">
           {steps.map((s) => (
