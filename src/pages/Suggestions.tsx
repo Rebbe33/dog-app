@@ -6,37 +6,8 @@ import type { DogActivity, Trick, TrickStep, AnxietyTrigger, AnxietyProtocolStep
 
 const MATERIEL_STORAGE_KEY = 'vanya-materiel-disponible'
 
-const OUTDOOR_KEYWORDS = [
-  'extérieur', 'exterieur', 'dehors', 'promenade', 'jardin', 'rue', 'parc',
-  'trottoir', 'quartier', 'forêt', 'foret', 'plage', 'rivière', 'riviere',
-]
-
 // Matériel "personnel" fixe, en plus de celui déjà déclaré sur les activités
 const EQUIPEMENT_PERSO = ['Laisse', 'Longe', 'Jouet', 'Corde', 'Cible/bâton', 'Gamelle', 'Couverture', 'Harnais']
-
-const EQUIPEMENT_KEYWORDS: Record<string, string[]> = {
-  'Laisse': ['laisse'],
-  'Longe': ['longe'],
-  'Jouet': ['jouet'],
-  'Corde': ['corde'],
-  'Cible/bâton': ['cible', 'bâton', 'baton'],
-  'Gamelle': ['gamelle'],
-  'Couverture': ['couverture'],
-  'Harnais': ['harnais'],
-}
-
-function isOutdoorStep(description: string) {
-  const lower = description.toLowerCase()
-  return OUTDOOR_KEYWORDS.some((k) => lower.includes(k))
-}
-
-// Renvoie les tags d'équipement détectés dans un texte d'étape (liste vide si aucun mot-clé trouvé)
-function equipementRequisDansTexte(description: string) {
-  const lower = description.toLowerCase()
-  return Object.entries(EQUIPEMENT_KEYWORDS)
-    .filter(([, keywords]) => keywords.some((k) => lower.includes(k)))
-    .map(([tag]) => tag)
-}
 
 function shuffle<T>(arr: T[]): T[] {
   const copy = [...arr]
@@ -114,10 +85,10 @@ export default function Suggestions() {
     [activities, materielDispo],
   )
 
-  // Équipement requis par un tour = union des mots-clés détectés dans toutes ses étapes
-  function trickCompatible(t: TrickAvecEtapes) {
+  // Matériel requis par un tour = union du matériel déclaré sur toutes ses étapes
+  function materielCompatible(t: TrickAvecEtapes) {
     const requis = new Set<string>()
-    t.steps.forEach((s) => equipementRequisDansTexte(s.description).forEach((tag) => requis.add(tag)))
+    t.steps.forEach((s) => s.materiel?.forEach((tag) => requis.add(tag)))
     return Array.from(requis).every((tag) => materielDispo.includes(tag))
   }
 
@@ -132,21 +103,30 @@ export default function Suggestions() {
     [tricks],
   )
 
-  // Pool filtré par lieu ET matériel disponible
+  // Pool filtré par lieu ET matériel disponible, basé sur la prochaine étape à travailler
+  // (utilisé pour "en cours"/"non appris" — pas pour la révision des tours déjà "appris",
+  // qui peut se faire n'importe où une fois le tour maîtrisé).
   const poolContexte = useMemo(() => {
     return tricksAvecProchaineEtape.filter((t) => {
-      const descRef = t.prochaine?.description ?? t.steps[t.steps.length - 1]?.description ?? ''
-      const estExterieur = isOutdoorStep(descRef)
-      const lieuOk = contexte === 'exterieur' ? true : !estExterieur
-      return lieuOk && trickCompatible(t)
+      const lieuEtape = t.prochaine?.lieu ?? 'indifferent'
+      const lieuOk = contexte === 'exterieur' || lieuEtape !== 'exterieur'
+      return lieuOk && materielCompatible(t)
     })
   }, [tricksAvecProchaineEtape, contexte, materielDispo])
+
+  // Pool pour la révision : uniquement filtré par matériel, le lieu n'est pas contraignant
+  // pour un tour déjà maîtrisé.
+  const poolRevision = useMemo(() => {
+    return tricksAvecProchaineEtape.filter((t) => materielCompatible(t))
+  }, [tricksAvecProchaineEtape, materielDispo])
 
   const seance = useMemo(() => {
     const toursPool = poolContexte.filter((t) => t.categorie === 'tour')
     const autocontrolePool = poolContexte.filter((t) => t.categorie === 'autocontrole')
+    const toursRevisionPool = poolRevision.filter((t) => t.categorie === 'tour')
+    const autocontroleRevisionPool = poolRevision.filter((t) => t.categorie === 'autocontrole')
 
-    const toursAppris = shuffle(toursPool.filter((t) => t.statut === 'appris')).slice(0, 4)
+    const toursAppris = shuffle(toursRevisionPool.filter((t) => t.statut === 'appris')).slice(0, 4)
 
     // Un nouveau tour à travailler = en cours d'apprentissage en priorité, sinon pas encore commencé
     const toursEnCours = toursPool.filter((t) => t.statut === 'en_cours')
@@ -154,7 +134,7 @@ export default function Suggestions() {
     const tourEnCours = shuffle(toursEnCours.length > 0 ? toursEnCours : toursNonAppris).slice(0, 1)
 
     const autocontroleEnCours = autocontrolePool.filter((t) => t.statut === 'en_cours')
-    const autocontroleAppris = autocontrolePool.filter((t) => t.statut === 'appris')
+    const autocontroleAppris = autocontroleRevisionPool.filter((t) => t.statut === 'appris')
     const autocontroleNonAppris = autocontrolePool.filter((t) => t.statut === 'non_appris')
     const autocontroleChoisi = shuffle(
       autocontroleEnCours.length > 0 ? autocontroleEnCours : autocontroleAppris.length > 0 ? autocontroleAppris : autocontroleNonAppris,
@@ -173,7 +153,7 @@ export default function Suggestions() {
     const pointAnxiete = shuffle(declencheursAvecPalier).slice(0, 1)
 
     return { toursAppris, tourEnCours, autocontroleChoisi, pointAnxiete }
-  }, [poolContexte, triggers, paliers, refreshCount])
+  }, [poolContexte, poolRevision, triggers, paliers, refreshCount])
 
   const categorieRoute: Record<string, string> = {
     tour: '/tours',
