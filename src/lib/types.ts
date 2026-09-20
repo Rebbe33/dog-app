@@ -30,6 +30,8 @@ export type AnxietyProtocolStep = {
   niveau_stress_observe: number | null
   reussite: boolean | null
   notes: string | null
+  lieu: 'interieur' | 'exterieur' | 'indifferent'
+  materiel: string[]
 }
 
 export type AnxietyTechnique = {
@@ -64,6 +66,8 @@ export type TrickStep = {
   en_cours: boolean
   date_completion: string | null
   notes: string | null
+  lieu: 'interieur' | 'exterieur' | 'indifferent'
+  materiel: string[]
 }
 
 export type EducationLogEntry = {
