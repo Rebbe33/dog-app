@@ -6,6 +6,7 @@ import type { DogActivity, ActivitySession, TrickStep } from '../lib/types'
 import ActivitySessionForm from '../components/activities/ActivitySessionForm'
 import PawTrail from '../components/PawTrail'
 import StepPawIcon, { nextStepStatus } from '../components/StepPawIcon'
+import StepLieuMaterielEditor from '../components/StepLieuMaterielEditor'
 
 export default function ActiviteDetail() {
   const { id } = useParams<{ id: string }>()
@@ -101,6 +102,19 @@ export default function ActiviteDetail() {
         date_completion: next.completed ? new Date().toISOString().slice(0, 10) : null,
       })
       .eq('id', step.id)
+    loadData()
+  }
+
+  async function changeStepLieu(step: TrickStep, lieu: string) {
+    await supabase.from(TABLES.trickSteps).update({ lieu }).eq('id', step.id)
+    loadData()
+  }
+
+  async function toggleStepMateriel(step: TrickStep, tag: string) {
+    const materiel = step.materiel.includes(tag)
+      ? step.materiel.filter((m) => m !== tag)
+      : [...step.materiel, tag]
+    await supabase.from(TABLES.trickSteps).update({ materiel }).eq('id', step.id)
     loadData()
   }
 
@@ -214,6 +228,9 @@ export default function ActiviteDetail() {
           {steps.length === 0 && (
             <p className="text-sm text-ink/50 mb-2">Pas encore de paliers — ajoute un objectif progressif.</p>
           )}
+          <p className="text-xs text-ink/40 mb-2">
+            Tape sur la patte pour changer l'état : à faire → en cours → validé.
+          </p>
           <ul className="space-y-2">
             {steps.map((s) => (
               <li key={s.id} className="card !py-3 flex items-start gap-3">
@@ -225,6 +242,12 @@ export default function ActiviteDetail() {
                   {s.en_cours && !s.completed && (
                     <p className="text-xs text-amber font-medium mt-0.5">en cours</p>
                   )}
+                  <StepLieuMaterielEditor
+                    lieu={s.lieu}
+                    materiel={s.materiel}
+                    onChangeLieu={(lieu) => changeStepLieu(s, lieu)}
+                    onToggleMateriel={(tag) => toggleStepMateriel(s, tag)}
+                  />
                   {s.date_completion && (
                     <p className="text-xs text-ink/30 font-mono mt-0.5">validé le {s.date_completion}</p>
                   )}
