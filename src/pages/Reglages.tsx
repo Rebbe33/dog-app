@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import { supabase, TABLES } from '../lib/supabase'
 
@@ -138,9 +139,14 @@ export default function Reglages() {
           {saving ? 'Enregistrement...' : 'Enregistrer'}
         </button>
       </form>
-<Link to="/edition-materiel" className="btn-secondary w-full flex items-center justify-center gap-2 py-2.5">
-  Classer lieu/matériel
-</Link>
+
+      <Link
+        to="/edition-materiel"
+        className="btn-secondary w-full flex items-center justify-center gap-2 py-2.5"
+      >
+        Classer lieu/matériel
+      </Link>
+
       <div className="card">
         <h3 className="font-display text-lg font-medium text-ink mb-1">À propos</h3>
         <p className="text-sm text-ink/60">Vanya app — construite avec toi, pour Vanya 🐾</p>
