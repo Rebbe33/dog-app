@@ -5,6 +5,7 @@ import { supabase, TABLES } from '../lib/supabase'
 import type { AnxietyTrigger, AnxietyLogEntry, AnxietyProtocolStep, AnxietyTechnique } from '../lib/types'
 import LogEpisodeForm from '../components/anxiety/LogEpisodeForm'
 import PawTrail from '../components/PawTrail'
+import StepLieuMaterielEditor from '../components/StepLieuMaterielEditor'
 
 export default function AnxieteDeclencheur() {
   const { id } = useParams<{ id: string }>()
@@ -44,6 +45,19 @@ export default function AnxieteDeclencheur() {
       .from(TABLES.anxietyProtocols)
       .update({ reussite, date_validation: reussite ? new Date().toISOString().slice(0, 10) : null })
       .eq('id', step.id)
+    loadData()
+  }
+
+  async function changeStepLieu(step: AnxietyProtocolStep, lieu: string) {
+    await supabase.from(TABLES.anxietyProtocols).update({ lieu }).eq('id', step.id)
+    loadData()
+  }
+
+  async function toggleStepMateriel(step: AnxietyProtocolStep, tag: string) {
+    const materiel = step.materiel.includes(tag)
+      ? step.materiel.filter((m) => m !== tag)
+      : [...step.materiel, tag]
+    await supabase.from(TABLES.anxietyProtocols).update({ materiel }).eq('id', step.id)
     loadData()
   }
 
@@ -153,6 +167,12 @@ export default function AnxieteDeclencheur() {
                   {s.date_validation && (
                     <p className="text-xs text-ink/30 font-mono mt-0.5">validé le {s.date_validation}</p>
                   )}
+                  <StepLieuMaterielEditor
+                    lieu={s.lieu}
+                    materiel={s.materiel}
+                    onChangeLieu={(lieu) => changeStepLieu(s, lieu)}
+                    onToggleMateriel={(tag) => toggleStepMateriel(s, tag)}
+                  />
                 </div>
               </li>
             ))}
