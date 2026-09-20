@@ -32,6 +32,7 @@ export type AnxietyProtocolStep = {
   notes: string | null
   lieu: 'interieur' | 'exterieur' | 'indifferent'
   materiel: string[]
+  revu: boolean
 }
 
 export type AnxietyTechnique = {
@@ -68,6 +69,7 @@ export type TrickStep = {
   notes: string | null
   lieu: 'interieur' | 'exterieur' | 'indifferent'
   materiel: string[]
+  revu: boolean
 }
 
 export type EducationLogEntry = {
