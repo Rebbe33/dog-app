@@ -15,6 +15,7 @@ import ActiviteDetail from './pages/ActiviteDetail'
 import Sante from './pages/Sante'
 import Reglages from './pages/Reglages'
 import Suggestions from './pages/Suggestions'
+import EditionLieuMateriel from './pages/EditionLieuMateriel'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Accueil', icon: Home },
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/activites" element={<Activites />} />
           <Route path="/activites/:id" element={<ActiviteDetail />} />
           <Route path="/sante" element={<Sante />} />
+          <Route path="/edition-materiel" element={<EditionLieuMateriel />} />
           <Route path="/reglages" element={<Reglages />} />
           <Route path="/suggestions" element={<Suggestions />} />
         </Routes>
