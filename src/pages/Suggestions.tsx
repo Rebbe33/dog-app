@@ -55,15 +55,15 @@ function pickStep(
   steps: TrickStep[],
   lieu: string,
   materielDispo: string[],
-  opts: { onlyIncomplete?: boolean; ignoreCompat?: boolean } = {},
+  opts: { ignoreCompat?: boolean } = {},
 ): TrickStep | null {
-  let pool = steps.filter((s) => (opts.onlyIncomplete ? !s.completed : true))
-  if (!opts.ignoreCompat) pool = pool.filter((s) => compatible(s, lieu, materielDispo))
-  if (pool.length === 0) return null
-  // Pour l'apprentissage, on veut toujours la prochaine étape (ordre le plus bas), pas une au hasard.
-  return opts.onlyIncomplete
-    ? [...pool].sort((a, b) => a.ordre - b.ordre)[0]
-    : pool[Math.floor(Math.random() * pool.length)]
+  const incomplete = [...steps].filter((s) => !s.completed).sort((a, b) => a.ordre - b.ordre)
+  if (incomplete.length === 0) return null
+  const next = incomplete[0]
+  // Le vrai premier palier non acquis, jamais un autre plus loin dans la liste même
+  // si un autre serait compatible : on ne saute jamais en avant.
+  if (opts.ignoreCompat || compatible(next, lieu, materielDispo)) return next
+  return null
 }
 
 export default function Suggestions() {
@@ -114,7 +114,7 @@ export default function Suggestions() {
     const toursAppris = tours.filter((t) => t.statut === 'appris')
     for (const t of toursAppris) {
       if (nouveauxItems.filter((i) => i.kind === 'revision').length >= 3) break
-      const step = pickStep(t.steps, lieu, materielDispo, { onlyIncomplete: true })
+      const step = pickStep(t.steps, lieu, materielDispo)
       if (step) {
         nouveauxItems.push({
           id: step.id, kind: 'revision', table: 'trickSteps', label: t.nom, categorieLabel: 'Tour',
@@ -124,17 +124,17 @@ export default function Suggestions() {
     }
 
     // --- 1 autocontrôle : en_cours puis appris puis non_appris ---
-    function pickAutocontrole(list: TrickAvecEtapes[], onlyIncomplete: boolean) {
+    function pickAutocontrole(list: TrickAvecEtapes[]) {
       for (const t of list) {
-        const step = pickStep(t.steps, lieu, materielDispo, { onlyIncomplete })
+        const step = pickStep(t.steps, lieu, materielDispo)
         if (step) return { t, step }
       }
       return null
     }
     const autocontroleChoisi =
-      pickAutocontrole(autocontrole.filter((t) => t.statut === 'en_cours'), true) ??
-      pickAutocontrole(autocontrole.filter((t) => t.statut === 'appris'), true) ??
-      pickAutocontrole(autocontrole.filter((t) => t.statut === 'non_appris'), true)
+      pickAutocontrole(autocontrole.filter((t) => t.statut === 'en_cours')) ??
+      pickAutocontrole(autocontrole.filter((t) => t.statut === 'appris')) ??
+      pickAutocontrole(autocontrole.filter((t) => t.statut === 'non_appris'))
     if (autocontroleChoisi) {
       nouveauxItems.push({
         id: autocontroleChoisi.step.id, kind: 'autocontrole', table: 'trickSteps',
@@ -147,10 +147,12 @@ export default function Suggestions() {
     // --- 1 anxiété : prochain palier non réussi d'un déclencheur actif ---
     const declencheursMelanges = shuffle(triggers)
     for (const trig of declencheursMelanges) {
-      const palierSuivant = paliers
+      const nonReussis = paliers
         .filter((p) => p.trigger_id === trig.id && !p.reussite)
         .sort((a, b) => a.ordre - b.ordre)
-        .find((p) => compatible(p, lieu, materielDispo))
+      const palierSuivant = nonReussis.length > 0 && compatible(nonReussis[0], lieu, materielDispo)
+        ? nonReussis[0]
+        : null
       if (palierSuivant) {
         nouveauxItems.push({
           id: palierSuivant.id, kind: 'anxiete', table: 'anxietyProtocols',
@@ -171,13 +173,13 @@ export default function Suggestions() {
     const tousLesPrerequis = new Set(tours.flatMap((t) => t.prerequis))
     const debloquantPool = tours.filter((t) => t.statut === 'non_appris' && tousLesPrerequis.has(t.nom))
 
-    let apprentissage = pickAutocontrole(enCoursPool, true)
-      ?? pickAutocontrole(nonApprisPretPool, true)
-      ?? pickAutocontrole(debloquantPool, true)
+    let apprentissage = pickAutocontrole(enCoursPool)
+      ?? pickAutocontrole(nonApprisPretPool)
+      ?? pickAutocontrole(debloquantPool)
     if (!apprentissage) {
       // Dernier recours : ignore le lieu/matériel pour proposer quand même quelque chose
       for (const t of debloquantPool.length > 0 ? debloquantPool : tours.filter((t) => t.statut === 'non_appris')) {
-        const step = pickStep(t.steps, lieu, materielDispo, { onlyIncomplete: true, ignoreCompat: true })
+        const step = pickStep(t.steps, lieu, materielDispo, { ignoreCompat: true })
         if (step) { apprentissage = { t, step }; break }
       }
     }
