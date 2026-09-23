@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts'
-import { Plus, Bell, Scale } from 'lucide-react'
+import { Plus, Bell, Scale, ListChecks } from 'lucide-react'
 import { supabase, TABLES } from '../lib/supabase'
-import type { HealthEvent, HealthReminder, WeightEntry } from '../lib/types'
+import type { HealthEvent, HealthReminder, WeightEntry, HealthChecklistItem } from '../lib/types'
 import { HEALTH_EVENT_TYPES } from '../lib/types'
 
 export default function Sante() {
+  const [checklist, setChecklist] = useState<HealthChecklistItem[]>([])
   const [events, setEvents] = useState<HealthEvent[]>([])
   const [reminders, setReminders] = useState<HealthReminder[]>([])
   const [weights, setWeights] = useState<WeightEntry[]>([])
@@ -30,11 +31,13 @@ export default function Sante() {
 
   async function loadData() {
     setLoading(true)
-    const [eventsRes, remindersRes, weightsRes] = await Promise.all([
+    const [checklistRes, eventsRes, remindersRes, weightsRes] = await Promise.all([
+      supabase.from(TABLES.healthChecklist).select('*').order('ordre'),
       supabase.from(TABLES.healthEvents).select('*').order('date', { ascending: false }).limit(30),
       supabase.from(TABLES.healthReminders).select('*').eq('actif', true).order('date_prochain_rappel'),
       supabase.from(TABLES.weightLog).select('*').order('date', { ascending: true }).limit(60),
     ])
+    if (checklistRes.data) setChecklist(checklistRes.data as HealthChecklistItem[])
     if (eventsRes.data) setEvents(eventsRes.data as HealthEvent[])
     if (remindersRes.data) setReminders(remindersRes.data as HealthReminder[])
     if (weightsRes.data) setWeights(weightsRes.data as WeightEntry[])
@@ -44,6 +47,47 @@ export default function Sante() {
   useEffect(() => {
     loadData()
   }, [])
+
+  // Coche un item de la checklist : logge l'événement, et pour les items
+  // récurrents (fréquence renseignée), crée ou met à jour le rappel associé.
+  async function toggleChecklistItem(item: HealthChecklistItem) {
+    const completed = !item.completed
+    const today = new Date().toISOString().slice(0, 10)
+
+    await supabase
+      .from(TABLES.healthChecklist)
+      .update({ completed, date_completion: completed ? today : null })
+      .eq('id', item.id)
+
+    if (completed) {
+      await supabase.from(TABLES.healthEvents).insert({
+        type: item.event_type,
+        date: today,
+        notes: `Depuis la checklist de démarrage : ${item.label}`,
+      })
+
+      if (item.frequence_jours_recommandee) {
+        const existing = reminders.find((r) => r.type === item.event_type)
+        const nextDate = new Date()
+        nextDate.setDate(nextDate.getDate() + item.frequence_jours_recommandee)
+        if (existing) {
+          await supabase
+            .from(TABLES.healthReminders)
+            .update({ date_prochain_rappel: nextDate.toISOString().slice(0, 10) })
+            .eq('id', existing.id)
+        } else {
+          await supabase.from(TABLES.healthReminders).insert({
+            type: item.event_type,
+            frequence_jours: item.frequence_jours_recommandee,
+            date_prochain_rappel: nextDate.toISOString().slice(0, 10),
+            actif: true,
+          })
+        }
+      }
+    }
+
+    loadData()
+  }
 
   async function submitEvent(e: React.FormEvent) {
     e.preventDefault()
@@ -55,7 +99,6 @@ export default function Sante() {
       notes: eventNotes || null,
     })
 
-    // Recalcule automatiquement le rappel correspondant, s'il existe
     const matchingReminder = reminders.find((r) => r.type === eventType && r.frequence_jours)
     if (matchingReminder && matchingReminder.frequence_jours) {
       const nextDate = new Date(eventDate)
@@ -117,9 +160,48 @@ export default function Sante() {
 
   if (loading) return <p className="text-sm text-ink/50">Chargement...</p>
 
+  const checklistRestante = checklist.filter((c) => !c.completed).length
+
   return (
     <div className="space-y-6">
       <h2 className="font-display text-xl font-semibold text-ink">Santé & entretien</h2>
+
+      {/* Checklist de démarrage */}
+      {checklist.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-display text-lg font-medium text-ink flex items-center gap-1">
+              <ListChecks size={16} /> Checklist de démarrage
+            </h3>
+            <span className="text-xs text-ink/40 font-mono">{checklistRestante} restants</span>
+          </div>
+          <ul className="space-y-2">
+            {checklist.map((item) => (
+              <li key={item.id} className="card !py-3 flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={item.completed}
+                  onChange={() => toggleChecklistItem(item)}
+                  className="mt-1 accent-moss"
+                />
+                <div>
+                  <p className={`text-sm ${item.completed ? 'text-ink/40 line-through' : 'text-ink'}`}>
+                    {item.label}
+                  </p>
+                  {item.frequence_jours_recommandee && (
+                    <p className="text-xs text-ink/40">
+                      récurrent — tous les {item.frequence_jours_recommandee} j (rappel auto une fois coché)
+                    </p>
+                  )}
+                  {item.date_completion && (
+                    <p className="text-xs text-ink/30 font-mono">fait le {item.date_completion}</p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Poids */}
       <div className="card">
@@ -297,4 +379,4 @@ export default function Sante() {
       </div>
     </div>
   )
-            }
+}
