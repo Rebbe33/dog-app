@@ -27,7 +27,7 @@ export default function EducationBaseDetail() {
       supabase.from(TABLES.tricks).select('*').eq('id', id).single(),
       supabase.from(TABLES.trickSteps).select('*').eq('trick_id', id).order('ordre'),
       supabase.from(TABLES.tricks).select('*'),
-      supabase.from(TABLES.trickSteps).select('*'),
+      supabase.from(TABLES.trickSteps).select('*').limit(5000),
     ])
     if (trickRes.data) {
       setTrick(trickRes.data as Trick)
