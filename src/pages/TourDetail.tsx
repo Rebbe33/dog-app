@@ -6,8 +6,8 @@ import type { Trick, TrickStep } from '../lib/types'
 import PawTrail from '../components/PawTrail'
 import StepPawIcon, { nextStepStatus } from '../components/StepPawIcon'
 import StepLieuMaterielEditor from '../components/StepLieuMaterielEditor'
-import StatutSelector from '../components/StatutSelector'
 import StepNotes from '../components/StepNotes'
+import StatutSelector from '../components/StatutSelector'
 
 export default function TourDetail() {
   const { id } = useParams<{ id: string }>()
@@ -15,7 +15,7 @@ export default function TourDetail() {
   const [steps, setSteps] = useState<TrickStep[]>([])
   const [allTricks, setAllTricks] = useState<Trick[]>([])
   const [allSteps, setAllSteps] = useState<TrickStep[]>([])
-  const [loading, setLoading] = useState)
+  const [loading, setLoading] = useState(true)
   const [newStep, setNewStep] = useState('')
   const [tagsInput, setTagsInput] = useState('')
   const [prerequisInput, setPrerequisInput] = useState('')
@@ -23,21 +23,19 @@ export default function TourDetail() {
   async function loadData() {
     if (!id) return
     setLoading(true)
-    const [trickRes, stepsRes, allTricksRes, allStepsRes] = await Promise.all([
-      supabase.from(TABLES.tricks).select('*').eq('id', id).single(),
     const [trickRes, stepsRes, allTricksRes] = await Promise.all([
-  supabase.from(TABLES.tricks).select('*').eq('id', id).single(),
-  supabase.from(TABLES.trickSteps).select('*').eq('trick_id', id).order('ordre'),
-  supabase.from(TABLES.tricks).select('*'),
-])
-if (trickRes.data) {
-  setTrick(trickRes.data as Trick)
-  setTagsInput((trickRes.data as Trick).tags.join(', '))
-  setPrerequisInput((trickRes.data as Trick).prerequis.join(', '))
-}
-if (stepsRes.data) setSteps(stepsRes.data as TrickStep[])
-if (allTricksRes.data) setAllTricks(allTricksRes.data as Trick[])
-setAllSteps(await fetchAllRows<TrickStep>(TABLES.trickSteps))
+      supabase.from(TABLES.tricks).select('*').eq('id', id).single(),
+      supabase.from(TABLES.trickSteps).select('*').eq('trick_id', id).order('ordre'),
+      supabase.from(TABLES.tricks).select('*'),
+    ])
+    if (trickRes.data) {
+      setTrick(trickRes.data as Trick)
+      setTagsInput((trickRes.data as Trick).tags.join(', '))
+      setPrerequisInput((trickRes.data as Trick).prerequis.join(', '))
+    }
+    if (stepsRes.data) setSteps(stepsRes.data as TrickStep[])
+    if (allTricksRes.data) setAllTricks(allTricksRes.data as Trick[])
+    setAllSteps(await fetchAllRows<TrickStep>(TABLES.trickSteps))
     setLoading(false)
   }
 
@@ -124,7 +122,6 @@ setAllSteps(await fetchAllRows<TrickStep>(TABLES.trickSteps))
     const t = allTricks.find((at) => at.nom === nomPrerequis)
     if (!t) return false
     const tSteps = allSteps.filter((s) => s.trick_id === t.id)
-    // Maîtrisé = a des étapes et elles sont toutes validées
     return !(tSteps.length > 0 && tSteps.every((s) => s.completed))
   })
 
@@ -206,21 +203,16 @@ setAllSteps(await fetchAllRows<TrickStep>(TABLES.trickSteps))
           </p>
         )}
 
-        <p className="text-xs text-ink/40 mb-2">
-          Tape sur la patte pour changer l'état : à faire → en cours → validé.
-        </p>
+        <p className="text-xs text-ink/40 mb-2">Tape sur la patte pour marquer acquis / non acquis.</p>
 
         <ul className="space-y-2">
           {steps.map((s) => (
             <li key={s.id} className="card !py-3 flex items-start gap-3">
               <StepPawIcon step={s} onClick={() => toggleStep(s)} />
-              <div>
+              <div className="flex-1">
                 <p className={`text-sm ${s.completed ? 'text-ink/40 line-through' : 'text-ink'}`}>
                   {s.description}
                 </p>
-                {s.en_cours && !s.completed && (
-                  <p className="text-xs text-amber font-medium mt-0.5">en cours</p>
-                )}
                 <StepLieuMaterielEditor
                   lieu={s.lieu}
                   materiel={s.materiel}
@@ -228,13 +220,13 @@ setAllSteps(await fetchAllRows<TrickStep>(TABLES.trickSteps))
                   onToggleMateriel={(tag) => toggleStepMateriel(s, tag)}
                 />
                 <StepNotes
-  initialNotes={s.notes ?? ''}
-  onSave={async (notes) => {
-    await supabase.from(TABLES.trickSteps).update({ notes }).eq('id', s.id)
-  }}
-/>
+                  initialNotes={s.notes ?? ''}
+                  onSave={async (notes) => {
+                    await supabase.from(TABLES.trickSteps).update({ notes }).eq('id', s.id)
+                  }}
+                />
                 {s.date_completion && (
-                  <p className="text-xs text-ink/30 font-mono mt-0.5">validé le {s.date_completion}</p>
+                  <p className="text-xs text-ink/30 font-mono mt-1">validé le {s.date_completion}</p>
                 )}
               </div>
             </li>
