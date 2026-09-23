@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Star, AlertTriangle } from 'lucide-react'
-import { supabase, TABLES } from '../lib/supabase'
+import { supabase, TABLES, fetchAllRows } from '../lib/supabase'
 import type { Trick, TrickStep } from '../lib/types'
 import PawTrail from '../components/PawTrail'
 import StepPawIcon, { nextStepStatus } from '../components/StepPawIcon'
@@ -15,7 +15,7 @@ export default function TourDetail() {
   const [steps, setSteps] = useState<TrickStep[]>([])
   const [allTricks, setAllTricks] = useState<Trick[]>([])
   const [allSteps, setAllSteps] = useState<TrickStep[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState)
   const [newStep, setNewStep] = useState('')
   const [tagsInput, setTagsInput] = useState('')
   const [prerequisInput, setPrerequisInput] = useState('')
@@ -25,18 +25,19 @@ export default function TourDetail() {
     setLoading(true)
     const [trickRes, stepsRes, allTricksRes, allStepsRes] = await Promise.all([
       supabase.from(TABLES.tricks).select('*').eq('id', id).single(),
-      supabase.from(TABLES.trickSteps).select('*').eq('trick_id', id).order('ordre'),
-      supabase.from(TABLES.tricks).select('*'),
-      supabase.from(TABLES.trickSteps).select('*').limit(5000),
-    ])
-    if (trickRes.data) {
-      setTrick(trickRes.data as Trick)
-      setTagsInput((trickRes.data as Trick).tags.join(', '))
-      setPrerequisInput((trickRes.data as Trick).prerequis.join(', '))
-    }
-    if (stepsRes.data) setSteps(stepsRes.data as TrickStep[])
-    if (allTricksRes.data) setAllTricks(allTricksRes.data as Trick[])
-    if (allStepsRes.data) setAllSteps(allStepsRes.data as TrickStep[])
+    const [trickRes, stepsRes, allTricksRes] = await Promise.all([
+  supabase.from(TABLES.tricks).select('*').eq('id', id).single(),
+  supabase.from(TABLES.trickSteps).select('*').eq('trick_id', id).order('ordre'),
+  supabase.from(TABLES.tricks).select('*'),
+])
+if (trickRes.data) {
+  setTrick(trickRes.data as Trick)
+  setTagsInput((trickRes.data as Trick).tags.join(', '))
+  setPrerequisInput((trickRes.data as Trick).prerequis.join(', '))
+}
+if (stepsRes.data) setSteps(stepsRes.data as TrickStep[])
+if (allTricksRes.data) setAllTricks(allTricksRes.data as Trick[])
+setAllSteps(await fetchAllRows<TrickStep>(TABLES.trickSteps))
     setLoading(false)
   }
 
