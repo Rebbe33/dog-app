@@ -29,3 +29,24 @@ export const TABLES = {
   streaks: 'dog_streaks',
   badges: 'dog_badges',
 } as const
+
+/**
+ * Récupère TOUTES les lignes d'une table en paginant par tranches de 1000.
+ * Nécessaire car Supabase impose une limite de lignes par requête côté
+ * serveur (souvent 1000) que le `.limit()` du client ne peut pas dépasser :
+ * demander plus ne change rien, les lignes au-delà sont juste tronquées,
+ * silencieusement et dans un ordre non garanti.
+ */
+export async function fetchAllRows<T>(table: string, pageSize = 1000): Promise<T[]> {
+  let all: T[] = []
+  let from = 0
+  while (true) {
+    const { data, error } = await supabase.from(table).select('*').range(from, from + pageSize - 1)
+    if (error) throw error
+    if (!data || data.length === 0) break
+    all = all.concat(data as T[])
+    if (data.length < pageSize) break
+    from += pageSize
+  }
+  return all
+}
