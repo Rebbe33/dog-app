@@ -6,6 +6,7 @@ import type { AnxietyTrigger, AnxietyLogEntry, AnxietyProtocolStep, AnxietyTechn
 import LogEpisodeForm from '../components/anxiety/LogEpisodeForm'
 import PawTrail from '../components/PawTrail'
 import StepLieuMaterielEditor from '../components/StepLieuMaterielEditor'
+import StepNotes from '../components/StepNotes'
 
 export default function AnxieteDeclencheur() {
   const { id } = useParams<{ id: string }>()
@@ -173,6 +174,12 @@ export default function AnxieteDeclencheur() {
                     onChangeLieu={(lieu) => changeStepLieu(s, lieu)}
                     onToggleMateriel={(tag) => toggleStepMateriel(s, tag)}
                   />
+                  <StepNotes
+  initialNotes={s.notes ?? ''}
+  onSave={async (notes) => {
+    await supabase.from(TABLES.anxietyProtocols).update({ notes }).eq('id', s.id)
+  }}
+/>
                 </div>
               </li>
             ))}
