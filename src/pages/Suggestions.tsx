@@ -27,6 +27,9 @@ type SeanceItem = {
   trickId?: string
   statutActuel?: TrickStatut
   statutChoisi?: TrickStatut
+  debugOrdre?: number
+  debugCompleted?: boolean
+  debugTotalSteps?: number
 }
 
 const KIND_LABEL: Record<SeanceItem['kind'], string> = {
@@ -129,6 +132,7 @@ export default function Suggestions() {
         nouveauxItems.push({
           id: step.id, kind: 'revision', table: 'trickSteps', label: t.nom, categorieLabel: 'Tour',
           description: step.description, notes: step.notes ?? '', savingNotes: false, acquis: null,
+          debugOrdre: step.ordre, debugCompleted: step.completed, debugTotalSteps: t.steps.length,
         })
       }
     }
@@ -318,6 +322,11 @@ export default function Suggestions() {
               <span className="tag text-ink/50">{KIND_LABEL[item.kind]}</span>
             </div>
             <p className="text-sm text-ink">{item.description}</p>
+            {item.debugOrdre !== undefined && (
+              <p className="text-[10px] text-rust font-mono">
+                debug: ordre={item.debugOrdre}/{item.debugTotalSteps} completed={String(item.debugCompleted)}
+              </p>
+            )}
 
             <label className="block text-xs text-ink/50">
               Notes
