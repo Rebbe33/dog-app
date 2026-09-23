@@ -24,6 +24,7 @@ export const TABLES = {
   activitySessions: 'dog_activity_sessions',
   healthEvents: 'dog_health_events',
   healthReminders: 'dog_health_reminders',
+  healthChecklist: 'dog_health_checklist',
   weightLog: 'dog_weight_log',
   quickLogs: 'dog_quick_logs',
   streaks: 'dog_streaks',
