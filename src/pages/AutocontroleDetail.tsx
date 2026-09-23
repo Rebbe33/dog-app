@@ -7,6 +7,7 @@ import PawTrail from '../components/PawTrail'
 import StepPawIcon, { nextStepStatus } from '../components/StepPawIcon'
 import StepLieuMaterielEditor from '../components/StepLieuMaterielEditor'
 import StatutSelector from '../components/StatutSelector'
+import StepNotes from '../components/StepNotes'
 
 export default function AutocontroleDetail() {
   const { id } = useParams<{ id: string }>()
@@ -225,6 +226,12 @@ export default function AutocontroleDetail() {
                   onChangeLieu={(lieu) => changeStepLieu(s, lieu)}
                   onToggleMateriel={(tag) => toggleStepMateriel(s, tag)}
                 />
+                <StepNotes
+  initialNotes={s.notes ?? ''}
+  onSave={async (notes) => {
+    await supabase.from(TABLES.trickSteps).update({ notes }).eq('id', s.id)
+  }}
+/>
                 {s.date_completion && (
                   <p className="text-xs text-ink/30 font-mono mt-0.5">validé le {s.date_completion}</p>
                 )}
