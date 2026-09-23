@@ -82,7 +82,7 @@ export default function Suggestions() {
       setLoading(true)
       const [tricksRes, stepsRes, triggersRes, paliersRes] = await Promise.all([
         supabase.from(TABLES.tricks).select('*').in('categorie', ['tour', 'autocontrole']),
-        supabase.from(TABLES.trickSteps).select('*'),
+        supabase.from(TABLES.trickSteps).select('*').limit(5000),,
         supabase.from(TABLES.anxietyTriggers).select('*').eq('protocole_active', true),
         supabase.from(TABLES.anxietyProtocols).select('*'),
       ])
