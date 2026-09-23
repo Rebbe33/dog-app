@@ -114,7 +114,7 @@ export default function Suggestions() {
     const toursAppris = tours.filter((t) => t.statut === 'appris')
     for (const t of toursAppris) {
       if (nouveauxItems.filter((i) => i.kind === 'revision').length >= 3) break
-      const step = pickStep(t.steps, lieu, materielDispo)
+      const step = pickStep(t.steps, lieu, materielDispo, { onlyIncomplete: true })
       if (step) {
         nouveauxItems.push({
           id: step.id, kind: 'revision', table: 'trickSteps', label: t.nom, categorieLabel: 'Tour',
@@ -133,7 +133,7 @@ export default function Suggestions() {
     }
     const autocontroleChoisi =
       pickAutocontrole(autocontrole.filter((t) => t.statut === 'en_cours'), true) ??
-      pickAutocontrole(autocontrole.filter((t) => t.statut === 'appris'), false) ??
+      pickAutocontrole(autocontrole.filter((t) => t.statut === 'appris'), true) ??
       pickAutocontrole(autocontrole.filter((t) => t.statut === 'non_appris'), true)
     if (autocontroleChoisi) {
       nouveauxItems.push({
