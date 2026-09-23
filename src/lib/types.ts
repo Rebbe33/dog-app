@@ -113,10 +113,21 @@ export const HEALTH_EVENT_TYPES = [
   { value: 'toilettage_bain', label: 'Bain' },
   { value: 'toilettage_griffes', label: 'Griffes' },
   { value: 'toilettage_brossage', label: 'Brossage' },
+  { value: 'identification', label: 'Identification (puce)' },
   { value: 'autre', label: 'Autre' },
 ] as const
 
 export type HealthEventType = typeof HEALTH_EVENT_TYPES[number]['value']
+
+export type HealthChecklistItem = {
+  id: string
+  label: string
+  event_type: HealthEventType
+  frequence_jours_recommandee: number | null
+  ordre: number
+  completed: boolean
+  date_completion: string | null
+}
 
 export type HealthEvent = {
   id: string
