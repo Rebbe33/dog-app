@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { RefreshCw, Save, Check, X } from 'lucide-react'
-import { supabase, TABLES } from '../lib/supabase'
+import { supabase, TABLES, fetchAllRows } from '../lib/supabase'
 import type {
   Trick, TrickStep, TrickStatut, AnxietyTrigger, AnxietyProtocolStep,
 } from '../lib/types'
@@ -27,9 +27,6 @@ type SeanceItem = {
   trickId?: string
   statutActuel?: TrickStatut
   statutChoisi?: TrickStatut
-  debugOrdre?: number
-  debugCompleted?: boolean
-  debugTotalSteps?: number
 }
 
 const KIND_LABEL: Record<SeanceItem['kind'], string> = {
@@ -86,18 +83,19 @@ export default function Suggestions() {
       setLoading(true)
       setLoadError(null)
       try {
-        const [tricksRes, stepsRes, triggersRes, paliersRes] = await Promise.all([
+        const [tricksRes, triggersRes, paliersRes] = await Promise.all([
           supabase.from(TABLES.tricks).select('*').in('categorie', ['tour', 'autocontrole']),
-          supabase.from(TABLES.trickSteps).select('*').limit(5000),
           supabase.from(TABLES.anxietyTriggers).select('*').eq('protocole_active', true),
           supabase.from(TABLES.anxietyProtocols).select('*'),
         ])
-        const firstError = tricksRes.error || stepsRes.error || triggersRes.error || paliersRes.error
+        const firstError = tricksRes.error || triggersRes.error || paliersRes.error
         if (firstError) throw firstError
 
-        if (tricksRes.data && stepsRes.data) {
+        const allSteps = await fetchAllRows<TrickStep>(TABLES.trickSteps)
+
+        if (tricksRes.data) {
           const byTrick: Record<string, TrickStep[]> = {}
-          ;(stepsRes.data as TrickStep[]).forEach((s) => {
+          allSteps.forEach((s) => {
             if (!byTrick[s.trick_id]) byTrick[s.trick_id] = []
             byTrick[s.trick_id].push(s)
           })
@@ -132,7 +130,6 @@ export default function Suggestions() {
         nouveauxItems.push({
           id: step.id, kind: 'revision', table: 'trickSteps', label: t.nom, categorieLabel: 'Tour',
           description: step.description, notes: step.notes ?? '', savingNotes: false, acquis: null,
-          debugOrdre: step.ordre, debugCompleted: step.completed, debugTotalSteps: t.steps.length,
         })
       }
     }
@@ -322,11 +319,6 @@ export default function Suggestions() {
               <span className="tag text-ink/50">{KIND_LABEL[item.kind]}</span>
             </div>
             <p className="text-sm text-ink">{item.description}</p>
-            {item.debugOrdre !== undefined && (
-              <p className="text-[10px] text-rust font-mono">
-                debug: ordre={item.debugOrdre}/{item.debugTotalSteps} completed={String(item.debugCompleted)}
-              </p>
-            )}
 
             <label className="block text-xs text-ink/50">
               Notes
