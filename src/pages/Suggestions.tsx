@@ -74,29 +74,39 @@ export default function Suggestions() {
   const [triggers, setTriggers] = useState<AnxietyTrigger[]>([])
   const [paliers, setPaliers] = useState<AnxietyProtocolStep[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [items, setItems] = useState<SeanceItem[]>([])
   const [terminee, setTerminee] = useState(false)
 
   useEffect(() => {
     async function load() {
       setLoading(true)
-      const [tricksRes, stepsRes, triggersRes, paliersRes] = await Promise.all([
-        supabase.from(TABLES.tricks).select('*').in('categorie', ['tour', 'autocontrole']),
-        supabase.from(TABLES.trickSteps).select('*').limit(5000),,
-        supabase.from(TABLES.anxietyTriggers).select('*').eq('protocole_active', true),
-        supabase.from(TABLES.anxietyProtocols).select('*'),
-      ])
-      if (tricksRes.data && stepsRes.data) {
-        const byTrick: Record<string, TrickStep[]> = {}
-        ;(stepsRes.data as TrickStep[]).forEach((s) => {
-          if (!byTrick[s.trick_id]) byTrick[s.trick_id] = []
-          byTrick[s.trick_id].push(s)
-        })
-        setTricks((tricksRes.data as Trick[]).map((t) => ({ ...t, steps: byTrick[t.id] ?? [] })))
+      setLoadError(null)
+      try {
+        const [tricksRes, stepsRes, triggersRes, paliersRes] = await Promise.all([
+          supabase.from(TABLES.tricks).select('*').in('categorie', ['tour', 'autocontrole']),
+          supabase.from(TABLES.trickSteps).select('*').limit(5000),
+          supabase.from(TABLES.anxietyTriggers).select('*').eq('protocole_active', true),
+          supabase.from(TABLES.anxietyProtocols).select('*'),
+        ])
+        const firstError = tricksRes.error || stepsRes.error || triggersRes.error || paliersRes.error
+        if (firstError) throw firstError
+
+        if (tricksRes.data && stepsRes.data) {
+          const byTrick: Record<string, TrickStep[]> = {}
+          ;(stepsRes.data as TrickStep[]).forEach((s) => {
+            if (!byTrick[s.trick_id]) byTrick[s.trick_id] = []
+            byTrick[s.trick_id].push(s)
+          })
+          setTricks((tricksRes.data as Trick[]).map((t) => ({ ...t, steps: byTrick[t.id] ?? [] })))
+        }
+        if (triggersRes.data) setTriggers(triggersRes.data as AnxietyTrigger[])
+        if (paliersRes.data) setPaliers(paliersRes.data as AnxietyProtocolStep[])
+      } catch (err: any) {
+        setLoadError(err?.message ?? String(err))
+      } finally {
+        setLoading(false)
       }
-      if (triggersRes.data) setTriggers(triggersRes.data as AnxietyTrigger[])
-      if (paliersRes.data) setPaliers(paliersRes.data as AnxietyProtocolStep[])
-      setLoading(false)
     }
     load()
   }, [])
@@ -233,6 +243,13 @@ export default function Suggestions() {
   }
 
   if (loading) return <p className="text-sm text-ink/50">Chargement...</p>
+  if (loadError) {
+    return (
+      <p className="text-sm text-rust bg-amber-light/40 border border-amber rounded-xl px-3 py-2">
+        Erreur : {loadError}
+      </p>
+    )
+  }
 
   if (phase === 'setup') {
     return (
