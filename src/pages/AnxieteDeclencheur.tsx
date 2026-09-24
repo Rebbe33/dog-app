@@ -163,7 +163,7 @@ export default function AnxieteDeclencheur() {
                     fill={s.reussite ? 'currentColor' : 'none'}
                   />
                 </button>
-                <divclassName="flex-1 min-w-0">
+                <div className="flex-1 min-w-0">
                   <p className={`text-sm ${s.reussite ? 'text-ink/40 line-through' : 'text-ink'}`}>{s.palier}</p>
                   {s.date_validation && (
                     <p className="text-xs text-ink/30 font-mono mt-0.5">validé le {s.date_validation}</p>
