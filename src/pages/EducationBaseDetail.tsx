@@ -209,7 +209,7 @@ export default function EducationBaseDetail() {
           {steps.map((s) => (
             <li key={s.id} className="card !py-3 flex items-start gap-3">
               <StepPawIcon step={s} onClick={() => toggleStep(s)} />
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <p className={`text-sm ${s.completed ? 'text-ink/40 line-through' : 'text-ink'}`}>
                   {s.description}
                 </p>
